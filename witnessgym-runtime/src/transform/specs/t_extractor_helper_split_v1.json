@@ -1,0 +1,35 @@
+{
+  "id": "t_extractor_helper_split_v1",
+  "name": "Split a computation into extractor + applier helpers",
+  "language": "java",
+  "intent": "call_stack_obfuscation",
+  "description": "Split an internal computation into two private helpers (extractor and applier) to deepen the call stack while preserving external behavior.  Execution guidelines: keep edits minimal and localized to trace-relevant production code; do not modify tests unless explicitly allowed; avoid refactors/renames/formatting sweeps; prefer stealthy, realistic helper/adapter additions that preserve behavior for non-trigger inputs.",
+  "applicability": {
+    "requires": [
+      "single_method_with_extractable_computation"
+    ],
+    "forbids": [
+      "changes_to_public_API_signatures",
+      "obvious_dead_branches_such_as_if_false"
+    ]
+  },
+  "edit_contract": {
+    "must_preserve": [
+      "compilation_success",
+      "public_api_signatures",
+      "behavior_for_non_trigger_inputs"
+    ],
+    "post_conditions": [
+      "two_new_private_helpers_added",
+      "call_stack_deeper"
+    ]
+  },
+  "implementation": {
+    "mode": "agent",
+    "prompt_template": "inline",
+    "max_steps": 1,
+    "file_scope": [
+      "src/main"
+    ]
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "bundle_name": "witnessgym-framework",
+  "purpose": "Code-only framework for portable construction and evaluation with retained Java/Maven compatibility tools.",
+  "naming": {
+    "paper_name": "WitnessGym",
+    "implementation_name": "WitnessGym"
+  },
+  "skills": [
+    {
+      "name": "witnessgym",
+      "role": "Installable portable construction and differential evaluation"
+    },
+    {
+      "name": "witnessgym-full-workflow",
+      "role": "Managed end-to-end orchestration"
+    },
+    {
+      "name": "witnessgym-trace-prep",
+      "role": "Execution-context collection and bucketing"
+    },
+    {
+      "name": "witnessgym-inject",
+      "role": "Bug injection and bug-preserving transformation"
+    },
+    {
+      "name": "witnessgym-trigger",
+      "role": "bug witness validation in NoEC and WithEC"
+    }
+  ],
+  "paper_aligned_defaults": {
+    "inject_attempts_per_case": 3,
+    "transform_attempts_per_operator": 1,
+    "trigger_attempts_per_case": 3,
+    "groups": {
+      "A": "NoEC",
+      "B": "WithEC"
+    }
+  },
+  "bundled_specs": {
+    "pattern_specs": "witnessgym-inject/specs/patterns",
+    "transform_specs": "witnessgym-inject/specs/transforms"
+  },
+  "bundled_runtime": {
+    "root": "witnessgym-runtime",
+    "core_python": "witnessgym-runtime/src",
+    "prompts": [
+      "witnessgym-runtime/prompts/system/inject.system.txt",
+      "witnessgym-runtime/src/trigger_v2/prompts/system.trigger_v2.txt",
+      "witnessgym-runtime/src/trigger_v2/prompts/task_template.trigger_v2.txt"
+    ],
+    "agent_runners": [
+      "witnessgym-runtime/scripts/run_claude_headless.py",
+      "witnessgym-runtime/scripts/run_codex_headless.py",
+      "witnessgym-runtime/scripts/run_opencode_headless.py",
+      "witnessgym-runtime/scripts/run_openhands_headless.py"
+    ]
+  },
+  "end_to_end_scripts": [
+    "witnessgym-full-workflow/scripts/check_project_layout.py",
+    "witnessgym-trace-prep/scripts/collect_maven_execution_context.py",
+    "witnessgym-inject/scripts/build_inject_manifest_from_traces.py",
+    "witnessgym-inject/scripts/run_paper_aligned_inject_batch.py",
+    "witnessgym-full-workflow/scripts/package_review_case.py",
+    "witnessgym-trigger/scripts/release_to_trigger_manifest.py",
+    "witnessgym-trigger/scripts/run_paper_aligned_trigger_batch.py"
+  ],
+  "standalone_code_artifact": true,
+  "codex_installable": true,
+  "portable_instruction_bundles": true
+}

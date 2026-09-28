@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "language": "java",
+  "production_roots": ["src"],
+  "test_roots": ["tests"],
+  "build": ["python3", "build.py"],
+  "verify": ["java", "-cp", "build", "Witness"],
+  "failure_regex": "java.lang.AssertionError: WITNESS_TARGET:",
+  "hidden_tests": ["tests/Witness.java"],
+  "ignore_dirs": ["build"],
+  "timeout": 30
+}

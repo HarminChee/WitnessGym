@@ -1,0 +1,31 @@
+{
+  "id": "t_nested_container_introduce_v1",
+  "name": "Introduce nested container indirection",
+  "language": "java",
+  "intent": "dataflow_obfuscation",
+  "description": "Refactor a direct field access into access through a nested container or accessor, increasing indirection naturally (e.g., map entry, list element wrapper), without changing public APIs.  Execution guidelines: keep edits minimal and localized to trace-relevant production code; do not modify tests unless explicitly allowed; avoid refactors/renames/formatting sweeps; prefer stealthy, realistic helper/adapter additions that preserve behavior for non-trigger inputs.",
+  "applicability": {
+    "requires": [
+      "complex_data_structure_with_nested_field_or_element"
+    ],
+    "forbids": [
+      "changes_to_public_API_signatures",
+      "immediate_null_check_on_the_nested_field"
+    ]
+  },
+  "edit_contract": {
+    "must_preserve": [
+      "compilation_success",
+      "public_api_signatures"
+    ],
+    "post_conditions": [
+      "nested_indirection_added"
+    ]
+  },
+  "implementation": {
+    "mode": "agent",
+    "prompt_template": "inline",
+    "max_steps": 12,
+    "file_scope": []
+  }
+}

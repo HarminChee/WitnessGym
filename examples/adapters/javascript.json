@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "language": "javascript",
+  "production_roots": ["src"],
+  "test_roots": ["tests"],
+  "build": ["node", "--check", "src/logic.js"],
+  "verify": ["node", "tests/witness.js"],
+  "failure_regex": "AssertionError.*WITNESS_TARGET:",
+  "hidden_tests": ["tests/witness.js"],
+  "timeout": 30
+}

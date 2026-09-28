@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "language": "python",
+  "production_roots": ["src"],
+  "test_roots": ["tests"],
+  "build": ["python3", "build.py"],
+  "verify": ["python3", "tests/witness.py"],
+  "failure_regex": "AssertionError: WITNESS_TARGET:",
+  "hidden_tests": ["tests/witness.py"],
+  "timeout": 30
+}

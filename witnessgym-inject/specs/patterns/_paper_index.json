@@ -1,0 +1,15 @@
+{
+  "description": "The ten paper-aligned bug-pattern specs bundled for reviewer reproduction.",
+  "pattern_ids": [
+    "codeql_java_comparison-of-identical-expressions",
+    "codeql_java_equals-typo",
+    "codeql_java_hashcode-typo",
+    "codeql_java_hashing-without-hashcode",
+    "codeql_java_inconsistent-equals-and-hashcode",
+    "npe_intra_method_guard_removed",
+    "npe_collection_element_lazily_nullified",
+    "logic_predicate_inversion_in_guard",
+    "logic_aggregation_counter_skipped_on_branch",
+    "logic_deep_branch_collection_misroute"
+  ]
+}

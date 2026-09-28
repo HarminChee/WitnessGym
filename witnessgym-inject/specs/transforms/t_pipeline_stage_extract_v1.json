@@ -1,0 +1,34 @@
+{
+  "id": "t_pipeline_stage_extract_v1",
+  "name": "Extract a pipeline stage into a private helper",
+  "language": "java",
+  "intent": "call_stack_obfuscation",
+  "description": "Refactor a medium-length method into two private stage helpers (or equivalent semantic stages) and route the original logic through them, increasing stack depth and making control flow appear like a natural cleanup refactor.  Execution guidelines: keep edits minimal and localized to trace-relevant production code; do not modify tests unless explicitly allowed; avoid refactors/renames/formatting sweeps; prefer stealthy, realistic helper/adapter additions that preserve behavior for non-trigger inputs.",
+  "applicability": {
+    "requires": [
+      "at_least_one_method_with_multiple_logical_steps"
+    ],
+    "forbids": [
+      "changes_to_public_API_signatures",
+      "obvious_dead_branches_such_as_if_false",
+      "introduce_try_catch_to_swallow_exceptions"
+    ]
+  },
+  "edit_contract": {
+    "must_preserve": [
+      "compilation_success",
+      "public_api_signatures",
+      "behavior_for_non_trigger_inputs"
+    ],
+    "post_conditions": [
+      "two_stage_helpers_added",
+      "call_chain_depth_increased"
+    ]
+  },
+  "implementation": {
+    "mode": "agent",
+    "prompt_template": "inline",
+    "max_steps": 14,
+    "file_scope": []
+  }
+}

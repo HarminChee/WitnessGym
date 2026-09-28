@@ -1,0 +1,121 @@
+{
+  "id": "codeql_java_comparison-of-identical-expressions",
+  "name": "Always-false condition via comparison of identical expressions",
+  "category": "LOGIC",
+  "scope": "intra_method_boolean_guard_corruption",
+  "language": "java",
+  "description": "A conditional (often in equals/hashCode/validation logic) mistakenly compares an expression to itself (e.g., id != id, x == x, a.equals(a)). This yields a constant boolean result (typically always false for !=, always true for ==), silently corrupting control flow. In practice, this can break equality contracts, disable validation, skip critical branches, or cause incorrect early returns that are only exposed when downstream logic relies on correct comparisons.",
+  "structure_constraints": {
+    "required_elements": [
+      "a_boolean_condition_comparing_identical_expressions",
+      "the_condition_controls_a_semantically_important_branch",
+      "the_expression_is_a_field_or_derived_value_used_elsewhere",
+      "caller_or_collections_depend_on_correct_semantics"
+    ],
+    "forbidden_elements": [
+      "intentional_constant_condition_used_for_debugging",
+      "compile_time_constant_condition_like_if_true",
+      "unit_tests_that_directly_assert_the_buggy_condition",
+      "obvious_dead_branches_such_as_if_false",
+      "changes_to_public_API_signatures"
+    ]
+  },
+  "runtime_effect": {
+    "exception_type": "none",
+    "typical_stacktrace_signals": [
+      "equals",
+      "hashCode",
+      "contains",
+      "HashMap"
+    ]
+  },
+  "trigger_conditions": {
+    "test_shape": "Tests that rely on object equality in collections (HashMap/HashSet) or business logic that expects validation/guard checks to behave correctly.",
+    "input_properties": "At least one pair of objects that should be equal (same id/name) is used in a context where equality must hold (e.g., deduplication, map lookup, set membership)."
+  },
+  "example": {
+    "description": "A domain object is used as a key in HashMap/HashSet for deduplication and lookup. A subtle regression in equals() compares an expression to itself (id != id), making the condition always false and causing equals() to reject otherwise equal objects. Collections depending on correct equality semantics then fail to find entries or deduplicate properly, producing incorrect results without exceptions.",
+    "buggy_snippet": [
+      "import java.util.HashMap;",
+      "import java.util.HashSet;",
+      "import java.util.Map;",
+      "import java.util.Objects;",
+      "import java.util.Set;",
+      "",
+      "public final class CustomerKeyDemo {",
+      "  public static final class Customer {",
+      "    private final String name;",
+      "    private final long id;",
+      "    private final String region;",
+      "",
+      "    public Customer(String name, long id, String region) {",
+      "      this.name = name;",
+      "      this.id = id;",
+      "      this.region = region;",
+      "    }",
+      "",
+      "    public String getName() { return name; }",
+      "    public long getId() { return id; }",
+      "    public String getRegion() { return region; }",
+      "",
+      "    @Override",
+      "    public boolean equals(Object o) {",
+      "      if (o == this) return true;",
+      "      if (o == null) return false;",
+      "      if (getClass() != o.getClass()) return false;",
+      "      Customer other = (Customer) o;",
+      "      if (!Objects.equals(this.name, other.name)) return false;",
+      "      if (!Objects.equals(this.region, other.region)) return false;",
+      "      if (this.id != this.id) return false;",
+      "      return true;",
+      "    }",
+      "",
+      "    @Override",
+      "    public int hashCode() {",
+      "      return Objects.hash(name, id, region);",
+      "    }",
+      "  }",
+      "",
+      "  public static Map<Customer, Integer> buildSpendIndex() {",
+      "    Map<Customer, Integer> spend = new HashMap<>();",
+      "    Customer a1 = new Customer(\"Alice\", 1001L, \"us\");",
+      "    Customer a2 = new Customer(\"Alice\", 1001L, \"us\");",
+      "    spend.put(a1, 42);",
+      "    spend.put(a2, 99);",
+      "    return spend;",
+      "  }",
+      "",
+      "  public static int lookupSpend(Map<Customer, Integer> spend, Customer key) {",
+      "    Integer v = spend.get(key);",
+      "    return v == null ? -1 : v.intValue();",
+      "  }",
+      "",
+      "  public static int dedupCount(Customer[] customers) {",
+      "    Set<Customer> s = new HashSet<>();",
+      "    for (Customer c : customers) {",
+      "      if (c != null) s.add(c);",
+      "    }",
+      "    return s.size();",
+      "  }",
+      "}"
+    ]
+  },
+  "codeql": {
+    "query_id": "java/comparison-of-identical-expressions",
+    "help_url": "https://codeql.github.com/codeql-query-help/java/java-comparison-of-identical-expressions/",
+    "name": "Comparison of identical values¶",
+    "kind": "problem",
+    "precision": "very-high",
+    "tags": [
+      "quality",
+      "reliability",
+      "correctness",
+      "logic"
+    ],
+    "cwe": []
+  },
+  "injectability": {
+    "can_inject": true,
+    "difficulty": "easy"
+  }
+}

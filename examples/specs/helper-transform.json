@@ -1,0 +1,4 @@
+{
+  "id": "fixture-helper-extraction",
+  "instruction": "Introduce an identity helper into the clamp call path while preserving its current behavior and API."
+}

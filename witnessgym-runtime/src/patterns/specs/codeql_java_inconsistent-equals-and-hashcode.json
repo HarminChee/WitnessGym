@@ -1,0 +1,92 @@
+{
+  "id": "codeql_java_inconsistent-equals-and-hashcode",
+  "name": "Inconsistent equals and hashCode breaking HashMap/HashSet lookups",
+  "category": "PROTOCOL_STATE",
+  "scope": "state_equality_ordering_contract",
+  "language": "java",
+  "description": "A class overrides equals but defines a hashCode that is inconsistent with equals, violating the Java contract that equal objects must have identical hash codes. This commonly occurs when equals is weakened (for example, comparing only userId) while hashCode still includes additional fields (for example, tenant), or when hashCode incorporates non-stable data. The result is broken lookups and deduplication in HashMap/HashSet: contains/get may return false/null even though equals would return true, causing state divergence and subtle correctness bugs.",
+  "structure_constraints": {
+    "required_elements": [
+      "class_overrides_equals_Object",
+      "class_overrides_hashCode",
+      "equals_defines_equivalence_on_subset_of_fields",
+      "hashCode_uses_superset_of_fields_or_non_stable_component",
+      "usage_in_HashMap_or_HashSet_with_lookup_via_new_equivalent_instance"
+    ],
+    "forbidden_elements": [
+      "hashCode_computed_from_exact_same_fields_as_equals",
+      "use_of_Record_or_Lombok_generated_equals_hashCode_that_are_consistent",
+      "changes_to_public_API_signatures",
+      "dead_code_injection_sites"
+    ]
+  },
+  "runtime_effect": {
+    "exception_type": "none",
+    "typical_stacktrace_signals": [
+      "HashSet_contains_returns_false_for_equal_object",
+      "HashMap_get_returns_null_for_equal_key",
+      "duplicate_logical_keys_coexist_in_set_or_map"
+    ]
+  },
+  "trigger_conditions": {
+    "test_shape": "Tests that store an object in HashMap/HashSet, then attempt to retrieve/contain-check using a different instance that should be equal by equals.",
+    "input_properties": "Two instances must be equal according to equals while producing different hash codes (for example, same userId but different tenant)."
+  },
+  "example": {
+    "description": "A value-like key is stored in a HashMap. equals is weakened to compare only userId, but hashCode still includes tenant, so two instances that are equal by equals can hash to different buckets and lookups via a new equivalent instance return null.",
+    "snippet": [
+      "import java.util.HashMap;",
+      "import java.util.Map;",
+      "import java.util.Objects;",
+      "",
+      "public final class SessionKey {",
+      "  private final String userId;",
+      "  private final String tenant;",
+      "",
+      "  public SessionKey(String userId, String tenant) {",
+      "    this.userId = userId;",
+      "    this.tenant = tenant;",
+      "  }",
+      "",
+      "  @Override",
+      "  public boolean equals(Object o) {",
+      "    if (this == o) return true;",
+      "    if (!(o instanceof SessionKey)) return false;",
+      "    SessionKey that = (SessionKey) o;",
+      "    return Objects.equals(this.userId, that.userId);",
+      "  }",
+      "",
+      "  @Override",
+      "  public int hashCode() {",
+      "    return Objects.hash(userId, tenant);",
+      "  }",
+      "",
+      "  public static void main(String[] args) {",
+      "    Map<SessionKey, String> map = new HashMap<>();",
+      "    SessionKey stored = new SessionKey(\"u7\", \"tA\");",
+      "    map.put(stored, \"token\");",
+      "",
+      "    SessionKey lookupEqualButDifferentTenant = new SessionKey(\"u7\", \"tB\");",
+      "    System.out.println(stored.equals(lookupEqualButDifferentTenant));",
+      "    System.out.println(map.get(lookupEqualButDifferentTenant));",
+      "  }",
+      "}"
+    ]
+  },
+  "codeql": {
+    "query_id": "java/inconsistent-equals-and-hashcode",
+    "help_url": "https://codeql.github.com/codeql-query-help/java/java-inconsistent-equals-and-hashcode/",
+    "name": "Inconsistent equals and hashCode",
+    "kind": "problem",
+    "precision": "very-high",
+    "tags": [
+      "quality",
+      "reliability",
+      "correctness",
+      "external/cwe/cwe-581"
+    ],
+    "cwe": [
+      "CWE-581"
+    ]
+  }
+}

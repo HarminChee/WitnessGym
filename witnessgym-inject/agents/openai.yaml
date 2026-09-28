@@ -1,0 +1,4 @@
+interface:
+  display_name: "WITNESSGYM Inject"
+  short_description: "Construct WITNESSGYM buggy cases with paper-aligned injection"
+  default_prompt: "Use $witnessgym-inject to run paper-aligned WITNESSGYM bug injection and bug-preserving transformation on selected execution contexts."

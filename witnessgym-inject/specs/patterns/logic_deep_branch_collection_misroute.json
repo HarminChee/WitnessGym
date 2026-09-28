@@ -1,0 +1,81 @@
+{
+  "id": "logic_deep_branch_collection_misroute",
+  "name": "Deep collection misrouting in nested branches",
+  "category": "Logic",
+  "scope": "intra_method_collection_manipulation",
+  "language": "java",
+  "description": "Inside a loop over a collection or implicit grid (e.g., rendering pixels into an array), introduce nested branches that occasionally write to the wrong index while still using legal in-bounds indices. The resulting collection has all elements filled, but their logical positions are swapped, duplicated, or shifted, causing test assertions on expected layout to fail.",
+  "structure_constraints": {
+    "required_elements": [
+      "outer_loop_over_height_or_collection_size",
+      "inner_loop_over_width_or_element_index",
+      "target_array_or_collection_with_linear_index",
+      "final_array_used_in_assertions_or_rendering"
+    ],
+    "forbidden_elements": [
+      "out_of_bounds_indexing",
+      "early_return_that_skips_entire_loop",
+      "wholesale_rewrite_of_method_structure"
+    ]
+  },
+  "runtime_effect": {
+    "exception_type": null,
+    "typical_failure_signals": [
+      "assertArrayEquals_failure",
+      "mismatched_pixel_or_element_ordering",
+      "off_by_one_differences_at_specific_indices"
+    ]
+  },
+  "trigger_conditions": {
+    "test_shape": "Tests that build an expected array representation (thumbnail, histogram, buffer) and compare it element-wise against the method output.",
+    "input_properties": "Dimensions and input data should cause both branches (even/odd indices, middle positions) to be exercised."
+  },
+  "example": {
+    "description": "A 2D-to-1D rendering loop fills an output pixel buffer. Nested branches misroute writes to a different in-bounds index (row-wise pair-swap on even rows, row-wise rotate on odd rows). The buffer is fully populated, but logical positions are swapped/shifted, causing element-wise layout assertions to fail.",
+    "buggy_snippet": [
+      "public final class ThumbnailRenderer {",
+      "  public static int[] renderThumbnail(int[][] source, int width, int height) {",
+      "    int[] pixels = new int[width * height];",
+      "    for (int y = 0; y < height; y++) {",
+      "      int base = y * width;",
+      "      for (int x = 0; x < width; x++) {",
+      "        int grey = source[y][x];",
+      "        int targetIndex;",
+      "        if ((y & 1) == 0) {",
+      "          if ((x & 1) == 0) {",
+      "            int nx = x + 1;",
+      "            if (nx >= width) nx = x;",
+      "            targetIndex = base + nx;",
+      "          } else {",
+      "            targetIndex = base + (x - 1);",
+      "          }",
+      "        } else {",
+      "          int nx = x + 1;",
+      "          if (nx == width) {",
+      "            nx = 0;",
+      "          }",
+      "          targetIndex = base + nx;",
+      "        }",
+      "        pixels[targetIndex] = grey;",
+      "      }",
+      "    }",
+      "    return pixels;",
+      "  }",
+      "}"
+    ]
+  },
+  "codeql": {
+    "query_id": "java/improper-validation-of-array-index",
+    "help_url": "https://codeql.github.com/codeql-query-help/java/java-improper-validation-of-array-index/",
+    "name": "Improper validation of array index¶",
+    "kind": "problem",
+    "precision": "medium",
+    "tags": [
+      "security",
+      "external/cwe/cwe-129"
+    ],
+    "cwe": [
+      "CWE-129"
+    ]
+  }
+}

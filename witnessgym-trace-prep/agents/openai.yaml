@@ -1,0 +1,4 @@
+interface:
+  display_name: "WITNESSGYM Trace Prep"
+  short_description: "Collect and bucket WITNESSGYM execution contexts"
+  default_prompt: "Use $witnessgym-trace-prep to collect, normalize, and bucket execution contexts and replay commands for WITNESSGYM."

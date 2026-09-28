@@ -1,0 +1,33 @@
+{
+  "id": "t_context_object_wrap_v1",
+  "name": "Wrap related locals into a private context object",
+  "language": "java",
+  "intent": "dataflow_obfuscation",
+  "description": "Introduce a private static inner Context/State object to group related locals/parameters and pass it across existing helpers, increasing indirection naturally without changing public APIs or adding obvious dead code.  Execution guidelines: keep edits minimal and localized to trace-relevant production code; do not modify tests unless explicitly allowed; avoid refactors/renames/formatting sweeps; prefer stealthy, realistic helper/adapter additions that preserve behavior for non-trigger inputs.",
+  "applicability": {
+    "requires": [
+      "at_least_two_related_locals_or_parameters_used_across_calls"
+    ],
+    "forbids": [
+      "changes_to_public_API_signatures",
+      "obvious_dead_branches_such_as_if_false",
+      "immediate_null_check_on_the_nested_field"
+    ]
+  },
+  "edit_contract": {
+    "must_preserve": [
+      "compilation_success",
+      "public_api_signatures"
+    ],
+    "post_conditions": [
+      "private_context_object_introduced",
+      "context_passed_through_at_least_one_helper"
+    ]
+  },
+  "implementation": {
+    "mode": "agent",
+    "prompt_template": "inline",
+    "max_steps": 12,
+    "file_scope": []
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "description": "The ten paper-aligned bug-preserving transformation specs bundled for reviewer reproduction.",
+  "transform_ids": [
+    "t_call_stack_deepen_v1",
+    "t_private_adapter_layer_v1",
+    "t_extractor_helper_split_v1",
+    "t_argument_object_introduce_v1",
+    "t_context_object_wrap_v1",
+    "t_private_state_holder_v1",
+    "t_cached_accessor_layer_v1",
+    "t_nested_container_introduce_v1",
+    "t_pipeline_stage_extract_v1",
+    "t_rare_profile_gate_v1"
+  ]
+}

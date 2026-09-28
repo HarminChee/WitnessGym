@@ -1,0 +1,32 @@
+{
+  "id": "t_call_stack_deepen_v1",
+  "name": "Deepen call stack with a natural helper extraction",
+  "language": "java",
+  "intent": "call_stack_obfuscation",
+  "description": "Introduce a small helper method or lightweight wrapper class to deepen the call stack by one level while keeping behavior unchanged for non-trigger inputs.  Execution guidelines: keep edits minimal and localized to trace-relevant production code; do not modify tests unless explicitly allowed; avoid refactors/renames/formatting sweeps; prefer stealthy, realistic helper/adapter additions that preserve behavior for non-trigger inputs.",
+  "applicability": {
+    "requires": [
+      "at_least_one_mid_level_helper_candidate"
+    ],
+    "forbids": [
+      "changes_to_public_API_signatures",
+      "obvious_dead_branches_such_as_if_false"
+    ]
+  },
+  "edit_contract": {
+    "must_preserve": [
+      "compilation_success",
+      "public_api_signatures",
+      "behavior_for_non_trigger_inputs"
+    ],
+    "post_conditions": [
+      "additional_helper_in_call_chain"
+    ]
+  },
+  "implementation": {
+    "mode": "agent",
+    "prompt_template": "inline",
+    "max_steps": 10,
+    "file_scope": []
+  }
+}

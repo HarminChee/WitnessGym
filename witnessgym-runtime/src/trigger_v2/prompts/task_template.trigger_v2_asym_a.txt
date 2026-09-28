@@ -1,0 +1,31 @@
+Task:
+Create a Java testcase that exposes an existing behavioral regression.
+
+This is the low-context group. You are not given the bug pattern, the trace, the transform list, or the bug-related production file hints.
+
+Repository: {repo_name}
+Detection group: {group}
+Injected case run_id: {run_id}
+Official testcase path: {official_test_path}
+Official testcase class: {official_test_class}
+Verification command: {verify_cmd}
+
+Success criteria:
+- A real Java testcase exists under src/test/java.
+- The testcase uses the correct package and compiles.
+- The verification command fails because the new testcase exposes a semantic behavioral mismatch.
+- Production code and build files are not modified.
+
+Recommended workflow:
+- Start from the official testcase path and inspect nearby tests.
+- Inspect only the production code needed to understand those tests.
+- Add one focused test method or a small helper inside the test class.
+- Run or reason against the verification command.
+
+Do not modify:
+- src/main/java
+- pom.xml or any build/config file
+- unrelated test files
+
+Required final output:
+Print exactly one final single-line JSON object prefixed by TRIGGER_REPORT_JSON.

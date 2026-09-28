@@ -1,0 +1,4 @@
+interface:
+  display_name: "WITNESSGYM Full Workflow"
+  short_description: "Run the full WITNESSGYM benchmark workflow end to end"
+  default_prompt: "Use $witnessgym-full-workflow to run an end-to-end WITNESSGYM workflow, including trace prep, bug injection, transformation, bug witness validation, and anonymous release packaging."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "WitnessGym"
+  short_description: "Build bug cases and verify executable witnesses"
+  default_prompt: "Use $witnessgym to construct a bug case and evaluate an executable witness."

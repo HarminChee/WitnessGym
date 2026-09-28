@@ -1,0 +1,67 @@
+Task:
+Generate a new Java testcase that exposes a behavioral regression in the current repository.
+
+Success criteria:
+- A real Java testcase file exists in the repository under src/test/java.
+- The testcase uses the correct package declaration.
+- The testcase compiles.
+- The provided verification command fails because the new testcase exposes a behavioral mismatch.
+- The failure is a semantic test failure, not a compile error and not a harness failure.
+
+Harder setting:
+- You are not given a natural-language bug summary.
+- You are not given the bug-related production files.
+- You should inspect the verification target, nearby tests, and production code as needed.
+- Avoid overfitting to trivial assertions that do not exercise repository behavior.
+
+Repository: {repo_name}
+Detection group: {group}
+Injected case run_id: {run_id}
+Trace clue, if provided: {trace_id}
+Official testcase path: {official_test_path}
+Official testcase class: {official_test_class}
+Verification command: {verify_cmd}
+
+What you must do:
+- Inspect the repository and relevant tests/code as needed.
+- Create or rewrite the testcase directly in the repository.
+- Keep the package name and class name correct.
+- Materialize the testcase on disk before finishing.
+- Make the testcase specific enough to catch a real incorrect behavior in the current repository.
+
+What you must not do:
+- Do not modify production code.
+- Do not modify pom files or build configuration.
+- Do not modify files outside test-side paths.
+- Do not produce pseudo-code.
+- Do not only describe a testcase.
+- Do not rely on an external parser to write files for you.
+
+Required final output:
+At the very end of the response, print exactly one single-line JSON object prefixed by:
+TRIGGER_REPORT_JSON:
+
+The JSON object must have this exact schema:
+{
+  "summary": "<one-sentence summary of the trigger strategy>",
+  "suspected_bug_mechanism": "<brief hypothesis; empty if unknown>",
+  "inspected_production_files": ["<file1>", "<file2>"],
+  "inspected_test_files": ["<file1>", "<file2>"],
+  "selected_test_path": "<relative path of the final generated or rewritten test file>",
+  "selected_test_class": "<fully qualified or simple class name>",
+  "trigger_strategy": [
+    "<step 1>",
+    "<step 2>",
+    "<step 3>"
+  ],
+  "expected_failure_signal": "<assertion failure or behavioral mismatch expected from verify>",
+  "materialized_test_files": ["<relative path 1>", "<relative path 2>"],
+  "notes": "<short note; empty string if none>"
+}
+
+Rules for the final JSON line:
+- It must be valid JSON.
+- It must be on a single line.
+- Do not wrap it in markdown fences.
+- Do not omit any key.
+- If a field is unknown, use an empty string or an empty list.

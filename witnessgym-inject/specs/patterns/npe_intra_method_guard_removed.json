@@ -1,0 +1,103 @@
+{
+  "id": "npe_intra_method_guard_removed",
+  "name": "Intra-method NPE via guard removal or drift",
+  "category": "NPE",
+  "scope": "intra_procedural_single_method",
+  "language": "java",
+  "description": "Inside a single method, an object or field is initially checked for null before use. The bug removes, relaxes, or drifts the guard so that the dereference can now be executed with a null value under realistic conditions. This commonly happens when a null-check is moved away from the dereference, a new branch bypasses the guard, or a refactor leaves the dereference outside the guarded region.",
+  "structure_constraints": {
+    "required_elements": [
+      "a_single_method_with_lengthy_body_or_multiple_branches",
+      "at_least_one_existing_or_plausible_null_guard_on_a_reference",
+      "a_later_dereference_of_the_same_reference",
+      "at_least_two_distinct_paths_from_entry_to_dereference"
+    ],
+    "forbidden_elements": [
+      "syntactically_dead_code_paths",
+      "artificial_if_false_guards",
+      "massive_rewrite_of_method_structure"
+    ]
+  },
+  "runtime_effect": {
+    "exception_type": "java.lang.NullPointerException",
+    "typical_stacktrace_signals": [
+      "single_method_on_top_of_stack",
+      "dereference_like_toString_or_length_or_method_call",
+      "test_case_directly_calling_the_method"
+    ]
+  },
+  "trigger_conditions": {
+    "test_shape": "Tests that call the method with inputs that sometimes lead to a null reference but previously avoided NPE thanks to the guard.",
+    "input_properties": "At least one scenario where the new branch or missing guard path is taken and the reference is null at the point of dereference."
+  },
+  "injection_site_hints": {
+    "recommended_class_features": [
+      "utility_or_service_classes_with_validation_logic",
+      "methods_handling_optional_configuration_or_metadata"
+    ],
+    "recommended_method_features": [
+      "methods_with_early_returns_and_multiple_if_blocks",
+      "methods_where_a_parameter_is_checked_for_null_near_the_top"
+    ]
+  },
+  "example": {
+    "description": "A single method originally guards a nullable header before trimming/normalizing it. A later branch introduces guard drift by overwriting the guarded reference with an optional query parameter without re-checking, so the final normalization dereferences null on realistic inputs where the query param is absent.",
+    "buggy_snippet": [
+      "import java.util.Locale;",
+      "import java.util.Map;",
+      "",
+      "public final class TagFormatter {",
+      "  public String formatTag(Request req, Map<String, String> options) {",
+      "    String tag = req.getHeader(\"X-Tag\");",
+      "    if (tag == null) {",
+      "      return \"unknown\";",
+      "    }",
+      "",
+      "    if (options != null && \"true\".equalsIgnoreCase(options.get(\"preferQuery\"))) {",
+      "      tag = req.getQueryParam(\"tag\");",
+      "    }",
+      "",
+      "    String mode = options == null ? null : options.get(\"mode\");",
+      "    if (mode != null && mode.equalsIgnoreCase(\"raw\")) {",
+      "      return tag;",
+      "    }",
+      "",
+      "    String normalized = tag.trim().toLowerCase(Locale.ROOT);",
+      "    if (normalized.length() > 32) {",
+      "      normalized = normalized.substring(0, 32);",
+      "    }",
+      "",
+      "    String prefix = options == null ? null : options.get(\"prefix\");",
+      "    if (prefix != null && !prefix.isEmpty()) {",
+      "      normalized = prefix + \":\" + normalized;",
+      "    }",
+      "",
+      "    return normalized;",
+      "  }",
+      "",
+      "  public interface Request {",
+      "    String getHeader(String name);",
+      "    String getQueryParam(String name);",
+      "  }",
+      "}"
+    ]
+  },
+  "codeql": {
+    "query_id": "java/dereferenced-value-may-be-null",
+    "help_url": "https://codeql.github.com/codeql-query-help/java/java-dereferenced-value-may-be-null/",
+    "name": "Dereferenced variable may be null¶",
+    "kind": "problem",
+    "precision": "medium",
+    "tags": [
+      "quality",
+      "reliability",
+      "correctness",
+      "exceptions",
+      "external/cwe/cwe-476",
+      "non-local"
+    ],
+    "cwe": [
+      "CWE-476"
+    ]
+  }
+}

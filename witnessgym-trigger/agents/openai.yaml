@@ -1,0 +1,4 @@
+interface:
+  display_name: "WITNESSGYM Trigger"
+  short_description: "Run WITNESSGYM bug witness validation in NoEC and WithEC"
+  default_prompt: "Use $witnessgym-trigger to run WITNESSGYM bug witness validation for buggy cases under NoEC and WithEC."

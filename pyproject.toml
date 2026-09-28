@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "witnessgym"
+version = "0.1.0"
+description = "Construction and differential evaluation of executable bug witnesses"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "WitnessGym contributors"}]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "ruff>=0.11,<1", "build>=1.2,<2"]
+
+[project.scripts]
+witnessgym = "witnessgym.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E9", "F63", "F7", "F82"]

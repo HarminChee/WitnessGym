@@ -1,0 +1,75 @@
+Task:
+Generate a new Java testcase that triggers the already-injected bug.
+
+Success criteria:
+- A real Java testcase file exists in the repository under src/test/java.
+- The testcase uses the correct package declaration.
+- The testcase compiles.
+- The provided verification command fails because the injected bug is triggered.
+- The failure is a semantic test failure, not a compile error and not a harness failure.
+
+Critical instruction:
+You are not writing a generic new test.
+You are rewriting a trigger testcase whose purpose is to expose the already-injected production bug.
+
+What you must do:
+- Read the provided bug context carefully.
+- Inspect the repository and relevant production code as needed.
+- Create or rewrite the testcase directly in the repository.
+- Make sure the testcase is materialized on disk before finishing.
+- Keep the package name correct.
+- Keep the class name correct.
+- Make the testcase specifically exercise the suspected buggy path.
+
+What you must not do:
+- Do not modify production code.
+- Do not modify pom files or build configuration.
+- Do not modify files outside test-side paths.
+- Do not produce pseudo-code.
+- Do not only describe a testcase.
+- Do not rely on an external parser to write files for you.
+
+Repository: {repo_name}
+Detection group: {group}
+Injected case run_id: {run_id}
+Pattern ID: {pattern_id}
+Applied transforms: {transform_ids}
+Bug-related production files: {bug_related_files}
+Injection-stage verify rc: {inject_verify_rc}
+Verification command: {verify_cmd}
+
+Pattern summary:
+{pattern_summary}
+
+Additional task policy:
+- Place the new testcase under an appropriate src/test/java package path consistent with the repository structure.
+- Make the testcase trigger the injected bug path rather than test unrelated behavior.
+
+Required final output:
+At the very end of the response, print exactly one single-line JSON object prefixed by:
+TRIGGER_REPORT_JSON:
+
+The JSON object must have this exact schema:
+{
+  "summary": "<one-sentence summary of the trigger strategy>",
+  "suspected_bug_mechanism": "<brief explanation of what behavior is wrong>",
+  "inspected_production_files": ["<file1>", "<file2>"],
+  "inspected_test_files": ["<file1>", "<file2>"],
+  "selected_test_path": "<relative path of the final generated or rewritten test file>",
+  "selected_test_class": "<fully qualified or simple class name>",
+  "trigger_strategy": [
+    "<step 1>",
+    "<step 2>",
+    "<step 3>"
+  ],
+  "expected_failure_signal": "<assertion failure or behavioral mismatch expected from verify>",
+  "materialized_test_files": ["<relative path 1>", "<relative path 2>"],
+  "notes": "<short note; empty string if none>"
+}
+
+Rules for the final JSON line:
+- It must be valid JSON.
+- It must be on a single line.
+- Do not wrap it in markdown fences.
+- Do not omit any key.
+- If a field is unknown, use an empty string or an empty list.

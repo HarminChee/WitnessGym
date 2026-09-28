@@ -1,0 +1,32 @@
+{
+  "id": "t_private_adapter_layer_v1",
+  "name": "Add a private adapter layer and reroute one call site",
+  "language": "java",
+  "intent": "call_stack_obfuscation",
+  "description": "Introduce a small private adapter/delegate method that forwards to the existing logic with minimal reshaping, and reroute at least one internal call site through this adapter to deepen the call stack naturally.  Execution guidelines: keep edits minimal and localized to trace-relevant production code; do not modify tests unless explicitly allowed; avoid refactors/renames/formatting sweeps; prefer stealthy, realistic helper/adapter additions that preserve behavior for non-trigger inputs.",
+  "applicability": {
+    "requires": [
+      "at_least_one_internal_call_site_can_be_rerouted"
+    ],
+    "forbids": [
+      "changes_to_public_API_signatures",
+      "obvious_dead_branches_such_as_if_false"
+    ]
+  },
+  "edit_contract": {
+    "must_preserve": [
+      "compilation_success",
+      "public_api_signatures",
+      "behavior_for_non_trigger_inputs"
+    ],
+    "post_conditions": [
+      "additional_adapter_in_call_chain"
+    ]
+  },
+  "implementation": {
+    "mode": "agent",
+    "prompt_template": "inline",
+    "max_steps": 10,
+    "file_scope": []
+  }
+}

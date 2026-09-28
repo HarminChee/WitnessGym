@@ -1,0 +1,115 @@
+{
+  "id": "codeql_java_hashing-without-hashcode",
+  "name": "Hashed collection misuse: equals overridden without consistent hashCode",
+  "category": "PROTOCOL_STATE",
+  "scope": "object_contract_equality_ordering",
+  "language": "java",
+  "description": "A class overrides equals(Object) (value-based equality) but does not define a matching hashCode() implementation. Java then uses Object.hashCode (identity-based), violating the equals/hashCode contract. When such objects are used in hashed collections (HashMap/HashSet), logically equal instances may reside in different buckets, causing contains/get/remove failures and enabling duplicate logical keys. This frequently manifests as protocol/state bugs: cache duplication, inconsistent deduplication, or message/state comparisons failing after re-materialization.",
+  "structure_constraints": {
+    "required_elements": [
+      "class_overrides_equals_Object",
+      "class_does_not_override_hashCode",
+      "instances_used_in_hash_based_collection",
+      "equals_compares_value_fields"
+    ],
+    "forbidden_elements": [
+      "class_already_defines_hashCode",
+      "use_of_TreeMap_or_TreeSet_only",
+      "use_of_custom_hash_strategy_or_wrapper_that_provides_hashCode",
+      "obvious_dead_branches_such_as_if_false",
+      "changes_to_public_API_signatures"
+    ]
+  },
+  "runtime_effect": {
+    "exception_type": "none",
+    "typical_stacktrace_signals": [
+      "HashMap",
+      "HashSet",
+      "contains",
+      "get",
+      "remove"
+    ]
+  },
+  "trigger_conditions": {
+    "test_shape": "Tests that rely on hashed collections for deduplication or lookup, especially across object reconstruction (parsing/deserialization/copy).",
+    "input_properties": "Two distinct instances have equal value fields and equals returns true; one instance is used to store, another is used to look up."
+  },
+  "example": {
+    "description": "A protocol deduplication layer uses a value-like key (source, streamId, seq) in a HashSet/HashMap to detect replays and to cache decoded frames. The key overrides equals(Object) but forgets to override hashCode(). After re-parsing the same logical frame, a new key instance compares equal but hashes by identity, so contains/get fail and the system accepts duplicates or misses cached entries, leading to inconsistent state and failing assertions.",
+    "buggy_snippet": [
+      "import java.util.HashMap;",
+      "import java.util.HashSet;",
+      "import java.util.Map;",
+      "import java.util.Objects;",
+      "import java.util.Set;",
+      "",
+      "public final class ReplayGuard {",
+      "  private final Set<FrameKey> seen = new HashSet<>();",
+      "  private final Map<FrameKey, byte[]> decodedCache = new HashMap<>();",
+      "",
+      "  public boolean accept(String source, int streamId, long seq, byte[] payload) {",
+      "    FrameKey key = new FrameKey(source, streamId, seq);",
+      "    if (seen.contains(key)) {",
+      "      return false;",
+      "    }",
+      "    seen.add(key);",
+      "    decodedCache.put(key, decode(payload));",
+      "    return true;",
+      "  }",
+      "",
+      "  public byte[] getDecoded(String source, int streamId, long seq) {",
+      "    return decodedCache.get(new FrameKey(source, streamId, seq));",
+      "  }",
+      "",
+      "  private byte[] decode(byte[] payload) {",
+      "    if (payload == null) return new byte[0];",
+      "    byte[] out = new byte[payload.length];",
+      "    for (int i = 0; i < payload.length; i++) {",
+      "      out[i] = (byte) (payload[i] ^ 0x5A);",
+      "    }",
+      "    return out;",
+      "  }",
+      "",
+      "  public static final class FrameKey {",
+      "    private final String source;",
+      "    private final int streamId;",
+      "    private final long seq;",
+      "",
+      "    public FrameKey(String source, int streamId, long seq) {",
+      "      this.source = source;",
+      "      this.streamId = streamId;",
+      "      this.seq = seq;",
+      "    }",
+      "",
+      "    @Override",
+      "    public boolean equals(Object o) {",
+      "      if (o == this) return true;",
+      "      if (o == null) return false;",
+      "      if (getClass() != o.getClass()) return false;",
+      "      FrameKey other = (FrameKey) o;",
+      "      return Objects.equals(this.source, other.source)",
+      "          && this.streamId == other.streamId",
+      "          && this.seq == other.seq;",
+      "    }",
+      "  }",
+      "}"
+    ]
+  },
+  "codeql": {
+    "query_id": "java/hashing-without-hashcode",
+    "help_url": "https://codeql.github.com/codeql-query-help/java/java-hashing-without-hashcode/",
+    "name": "Hashed value without hashCode definition¶",
+    "kind": "problem",
+    "precision": "very-high",
+    "tags": [
+      "quality",
+      "reliability",
+      "correctness"
+    ],
+    "cwe": []
+  },
+  "injectability": {
+    "can_inject": true,
+    "difficulty": "easy"
+  }
+}

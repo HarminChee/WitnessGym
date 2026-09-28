@@ -1,0 +1,51 @@
+Task:
+Generate a Java testcase that triggers the already-injected bug.
+
+This is the high-context group. You are given the bug pattern, transform metadata, bug-related production files, and trace clue. Use this information to write a targeted proof-of-concept test.
+
+Repository: {repo_name}
+Detection group: {group}
+Injected case run_id: {run_id}
+Trace clue: {trace_id}
+Pattern ID: {pattern_id}
+Applied transforms: {transform_ids}
+Bug-related production files:
+{bug_related_files}
+Injection-stage verify rc: {inject_verify_rc}
+Official testcase path: {official_test_path}
+Official testcase class: {official_test_class}
+Verification command: {verify_cmd}
+
+Pattern summary:
+{pattern_summary}
+
+Success criteria:
+- A real Java testcase exists under src/test/java.
+- The testcase uses the correct package and compiles.
+- The verification command fails because the new testcase exposes the injected semantic bug.
+- Production code and build files are not modified.
+
+Recommended workflow:
+- Inspect the official testcase first.
+- Inspect the listed bug-related production files next.
+- Use the pattern summary and trace clue to identify the missing input/state/assertion.
+- Prefer adding one focused test method to the official testcase class.
+- Make the assertion fail on the buggy repository because of the injected behavior.
+
+Required final output:
+At the very end of the response, print exactly one single-line JSON object prefixed by:
+TRIGGER_REPORT_JSON:
+
+The JSON object must have this schema:
+{
+  "summary": "<one-sentence summary of the trigger strategy>",
+  "suspected_bug_mechanism": "<brief explanation of what behavior is wrong>",
+  "inspected_production_files": ["<file1>", "<file2>"],
+  "inspected_test_files": ["<file1>", "<file2>"],
+  "selected_test_path": "<relative path of the final generated or rewritten test file>",
+  "selected_test_class": "<fully qualified or simple class name>",
+  "trigger_strategy": ["<step 1>", "<step 2>", "<step 3>"],
+  "expected_failure_signal": "<assertion failure or behavioral mismatch expected from verify>",
+  "materialized_test_files": ["<relative path 1>", "<relative path 2>"],
+  "notes": "<short note; empty string if none>"
+}

@@ -1,0 +1,4 @@
+{
+  "id": "fixture-clamp-bound",
+  "instruction": "Change clamp so a positive input is incorrectly clamped to zero. Preserve the API and change production code only."
+}

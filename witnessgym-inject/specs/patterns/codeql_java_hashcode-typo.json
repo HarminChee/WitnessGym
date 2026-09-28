@@ -1,0 +1,120 @@
+{
+  "id": "codeql_java_hashcode-typo",
+  "name": "Hashing contract broken by hashCode method typo (not overriding Object.hashCode)",
+  "category": "PROTOCOL_STATE",
+  "scope": "object_contract_equality_ordering",
+  "language": "java",
+  "description": "A class intends to override Object.hashCode() but contains a typo in the method name or signature (for example, hashcode(), hashCode(int), HashCode()). As a result, the override is missing and Java uses Object.hashCode (identity-based). Even if equals is correctly overridden, using the object in hashed collections breaks invariants: equals objects may end up in different hash buckets and lookups fail unpredictably, producing cache misses, duplicate entries, and inconsistent protocol/state comparisons.",
+  "structure_constraints": {
+    "required_elements": [
+      "class_defines_hashcode_like_method_with_typo_or_wrong_signature",
+      "no_valid_override_of_hashCode_exists",
+      "class_used_as_key_in_hash_based_collections",
+      "equals_is_present_or_value_semantics_expected"
+    ],
+    "forbidden_elements": [
+      "presence_of_correct_hashCode_override_alongside_the_typo_method",
+      "use_of_identity_based_maps_only_such_as_IdentityHashMap",
+      "objects_never_used_in_hash_based_collections",
+      "obvious_dead_branches_such_as_if_false",
+      "changes_to_public_API_signatures"
+    ]
+  },
+  "runtime_effect": {
+    "exception_type": "none",
+    "typical_stacktrace_signals": [
+      "HashMap",
+      "HashSet",
+      "put",
+      "get"
+    ]
+  },
+  "trigger_conditions": {
+    "test_shape": "Tests that insert an object into a HashMap/HashSet and later attempt to retrieve it using a logically equal object (or re-constructed object).",
+    "input_properties": "Equals returns true for two distinct instances, but their identity hash codes differ and the class does not provide a proper hashCode override."
+  },
+  "example": {
+    "description": "A value-like key (peerId + channelId + sequence) is used to index protocol frames in a HashMap for deduplication and replay protection. equals(Object) is implemented correctly, but a refactor introduces a hashCode typo: hashcode() is defined instead of overriding hashCode(). HashMap therefore uses Object.hashCode (identity), so a logically equal key reconstructed on the next parse hashes to a different bucket and lookups miss, creating duplicate entries and broken state invariants without exceptions.",
+    "buggy_snippet": [
+      "import java.util.HashMap;",
+      "import java.util.Map;",
+      "import java.util.Objects;",
+      "",
+      "public final class FrameIndex {",
+      "  private final Map<FrameKey, Frame> frames = new HashMap<>();",
+      "",
+      "  public void accept(Frame f) {",
+      "    frames.put(new FrameKey(f.peerId, f.channelId, f.seq), f);",
+      "  }",
+      "",
+      "  public boolean seen(String peerId, int channelId, long seq) {",
+      "    return frames.containsKey(new FrameKey(peerId, channelId, seq));",
+      "  }",
+      "",
+      "  public Frame get(String peerId, int channelId, long seq) {",
+      "    return frames.get(new FrameKey(peerId, channelId, seq));",
+      "  }",
+      "",
+      "  public static final class FrameKey {",
+      "    private final String peerId;",
+      "    private final int channelId;",
+      "    private final long seq;",
+      "",
+      "    public FrameKey(String peerId, int channelId, long seq) {",
+      "      this.peerId = peerId;",
+      "      this.channelId = channelId;",
+      "      this.seq = seq;",
+      "    }",
+      "",
+      "    @Override",
+      "    public boolean equals(Object o) {",
+      "      if (o == this) return true;",
+      "      if (o == null) return false;",
+      "      if (getClass() != o.getClass()) return false;",
+      "      FrameKey other = (FrameKey) o;",
+      "      return Objects.equals(this.peerId, other.peerId)",
+      "          && this.channelId == other.channelId",
+      "          && this.seq == other.seq;",
+      "    }",
+      "",
+      "    public int hashcode() {",
+      "      int h = 31 * Objects.hashCode(peerId) + Integer.hashCode(channelId);",
+      "      h = 31 * h + (int) (seq ^ (seq >>> 32));",
+      "      return h;",
+      "    }",
+      "  }",
+      "",
+      "  public static final class Frame {",
+      "    public final String peerId;",
+      "    public final int channelId;",
+      "    public final long seq;",
+      "    public final byte[] payload;",
+      "    public Frame(String peerId, int channelId, long seq, byte[] payload) {",
+      "      this.peerId = peerId;",
+      "      this.channelId = channelId;",
+      "      this.seq = seq;",
+      "      this.payload = payload;",
+      "    }",
+      "  }",
+      "}"
+    ]
+  },
+  "codeql": {
+    "query_id": "java/hashcode-typo",
+    "help_url": "https://codeql.github.com/codeql-query-help/java/java-hashcode-typo/",
+    "name": "Typo in hashCode¶",
+    "kind": "problem",
+    "precision": "medium",
+    "tags": [
+      "quality",
+      "reliability",
+      "correctness",
+      "readability"
+    ],
+    "cwe": []
+  },
+  "injectability": {
+    "can_inject": true,
+    "difficulty": "easy"
+  }
+}

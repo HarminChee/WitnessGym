@@ -1,0 +1,131 @@
+{
+  "id": "codeql_java_equals-typo",
+  "name": "Equality contract silently broken by equals method typo (not overriding Object.equals)",
+  "category": "PROTOCOL_STATE",
+  "scope": "object_contract_equality_ordering",
+  "language": "java",
+  "description": "A class intends to override Object.equals(Object) but contains a typo in the method name or signature (for example, equal(Object), equals(Complex), equals(Object, ...), wrong visibility/return type). As a result, the method does not override Object.equals, and Java collections and frameworks continue to use reference equality. This causes subtle protocol/state bugs: deduplication fails, cache keys miss, set membership breaks, and invariants relying on logical equality collapse even though the class appears to implement an equality method.",
+  "structure_constraints": {
+    "required_elements": [
+      "class_defines_intended_equality_method_with_typo_or_wrong_signature",
+      "no_valid_override_of_equals_Object_exists",
+      "class_instances_used_in_collection_or_state_comparison",
+      "fields_define_value_semantics_such_as_coordinates_ids_or_payloads"
+    ],
+    "forbidden_elements": [
+      "presence_of_correct_equals_Object_override_alongside_the_typo_method",
+      "explicit_custom_comparator_always_used_instead_of_equals",
+      "tests_that_only_check_reference_equality",
+      "obvious_dead_branches_such_as_if_false",
+      "changes_to_public_API_signatures"
+    ]
+  },
+  "runtime_effect": {
+    "exception_type": "none",
+    "typical_stacktrace_signals": [
+      "HashSet",
+      "HashMap",
+      "contains",
+      "containsKey"
+    ]
+  },
+  "trigger_conditions": {
+    "test_shape": "Tests that rely on value-based equality, such as inserting logically identical objects into HashSet/HashMap and expecting deduplication or successful retrieval.",
+    "input_properties": "Two distinct instances carry identical field values; code expects them to compare equal or map to the same set entry."
+  },
+  "example": {
+    "description": "A protocol/session layer uses a value-like key (endpoint + sessionId + nonce) to deduplicate handshakes and cache per-session metadata in HashMap/HashSet. A refactor introduces an equality typo: the class defines equals(SessionKey) (or equal(Object)) instead of overriding equals(Object). Java collections therefore keep using reference equality, so logically identical keys created on subsequent parses do not match, leading to cache misses, duplicate sessions, and invariant failures without exceptions.",
+    "buggy_snippet": [
+      "import java.util.HashMap;",
+      "import java.util.HashSet;",
+      "import java.util.Map;",
+      "import java.util.Objects;",
+      "import java.util.Set;",
+      "",
+      "public final class SessionTable {",
+      "  private final Map<SessionKey, Session> sessions = new HashMap<>();",
+      "  private final Set<SessionKey> active = new HashSet<>();",
+      "",
+      "  public void open(String endpoint, long sessionId, byte[] nonce) {",
+      "    SessionKey key = new SessionKey(endpoint, sessionId, nonce);",
+      "    if (active.contains(key)) {",
+      "      return;",
+      "    }",
+      "    active.add(key);",
+      "    sessions.put(key, new Session(endpoint, sessionId));",
+      "  }",
+      "",
+      "  public boolean isOpen(String endpoint, long sessionId, byte[] nonce) {",
+      "    return active.contains(new SessionKey(endpoint, sessionId, nonce));",
+      "  }",
+      "",
+      "  public Session get(String endpoint, long sessionId, byte[] nonce) {",
+      "    return sessions.get(new SessionKey(endpoint, sessionId, nonce));",
+      "  }",
+      "",
+      "  public static final class SessionKey {",
+      "    private final String endpoint;",
+      "    private final long sessionId;",
+      "    private final byte[] nonce;",
+      "",
+      "    public SessionKey(String endpoint, long sessionId, byte[] nonce) {",
+      "      this.endpoint = endpoint;",
+      "      this.sessionId = sessionId;",
+      "      this.nonce = nonce;",
+      "    }",
+      "",
+      "    public boolean equals(SessionKey other) {",
+      "      if (other == null) return false;",
+      "      if (!Objects.equals(this.endpoint, other.endpoint)) return false;",
+      "      if (this.sessionId != other.sessionId) return false;",
+      "      if (this.nonce == null && other.nonce == null) return true;",
+      "      if (this.nonce == null || other.nonce == null) return false;",
+      "      if (this.nonce.length != other.nonce.length) return false;",
+      "      for (int i = 0; i < this.nonce.length; i++) {",
+      "        if (this.nonce[i] != other.nonce[i]) return false;",
+      "      }",
+      "      return true;",
+      "    }",
+      "",
+      "    @Override",
+      "    public int hashCode() {",
+      "      int h = 31 * Objects.hashCode(endpoint) + Long.hashCode(sessionId);",
+      "      if (nonce != null) {",
+      "        for (int i = 0; i < nonce.length; i++) {",
+      "          h = 31 * h + (nonce[i] & 0xFF);",
+      "        }",
+      "      }",
+      "      return h;",
+      "    }",
+      "  }",
+      "",
+      "  public static final class Session {",
+      "    public final String endpoint;",
+      "    public final long sessionId;",
+      "    public Session(String endpoint, long sessionId) {",
+      "      this.endpoint = endpoint;",
+      "      this.sessionId = sessionId;",
+      "    }",
+      "  }",
+      "}"
+    ]
+  },
+  "codeql": {
+    "query_id": "java/equals-typo",
+    "help_url": "https://codeql.github.com/codeql-query-help/java/java-equals-typo/",
+    "name": "Typo in equals¶",
+    "kind": "problem",
+    "precision": "medium",
+    "tags": [
+      "quality",
+      "reliability",
+      "correctness",
+      "readability"
+    ],
+    "cwe": []
+  },
+  "injectability": {
+    "can_inject": true,
+    "difficulty": "easy"
+  }
+}
